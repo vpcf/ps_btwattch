@@ -13,7 +13,7 @@
 .NOTES
     LICENSE : MIT
     AUTHOR  : @vpcf90
-    VERSION : 20181209
+    VERSION : 2018120
 #>
 
 Set-StrictMode -Version Latest
@@ -52,7 +52,7 @@ function get_port_name{
     $com_port_name =
         Get-WmiObject -Class Win32_PnPEntity |
         Where-Object{($_.Name -match "COM") -and ($_.DeviceID -match $bt_dev_address)} |
-        ForEach-Object{$_.Name -replace ".+?\((COM\d).+?",'$1'}
+        ForEach-Object{$_.Name -replace ".+?\((COM\d+).+?",'$1'}
 
     Write-Output $com_port_name
 }
@@ -142,7 +142,6 @@ function format_value([int[]]$data){
                 'Current(mA)' = $current
             }
         }catch{
-            
             exit
         }
         Write-Output $value

@@ -91,7 +91,7 @@ function communicate($bt_device, [byte[]]$payload, [int]$receive_length){
 
 function init_wattch1($bt_device){
     Write-Host -NoNewline "initializing... "
-    $timer_payload=
+    $timer_payload =
         0x01,
         ($now = Get-Date).Second,
         $now.Minute,
@@ -136,10 +136,10 @@ function format_value([int[]]$data){
         $current = (($data[7] -shl 16) + ($data[6] -shl 8) + $data[5]) * 1/128
         try{
             $value = [PSCustomObject]@{
-                'Datetime' = [DateTime]::New((2000+$data[19]),$data[18],$data[17],$data[16],$data[15],$data[14]);
+                'Datetime' = [DateTime]::New((2000 + $data[19]), $data[18], $data[17], $data[16], $data[15], $data[14]);
                 'Wattage(W)' = $wattage;
                 'Voltage(V)' = $voltage;
-                'Current(mA)'= $current
+                'Current(mA)' = $current
             }
         }catch{
             
@@ -156,7 +156,7 @@ function request_measure($bt_device){
 }
 
 function make_thread($bt_device, $cmd, $function_list){
-    $pool = [RunspaceFactory]::CreateRunspacePool(1,1)
+    $pool = [RunspaceFactory]::CreateRunspacePool(1, 1)
     $pool.Open()
     $ps = [PowerShell]::Create()
     $ps.RunspacePool = $pool

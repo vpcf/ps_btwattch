@@ -13,7 +13,7 @@
 .NOTES
     LICENSE : MIT
     AUTHOR  : @vpcf90
-    VERSION : 2018120
+    VERSION : 20181220
 #>
 
 Set-StrictMode -Version Latest

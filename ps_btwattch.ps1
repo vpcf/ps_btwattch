@@ -175,12 +175,6 @@ $measure_value = {
 
     $function_list | Invoke-Expression
 
-    $stop_form = Start-Job {
-        [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms") | Out-Null
-        Start-Sleep -Milliseconds 500
-        [System.Windows.Forms.MessageBox]::Show("計測停止ボタン")
-    }
-
     $outname = Get-Date -Format "'.\\'yyyyMMddHHmmss'.csv'"
     $pastsec = (Get-Date).Second
 
@@ -196,7 +190,7 @@ $measure_value = {
                 ($current_value = request_measure $bt_device)
                 $current_value | Export-Csv -Path $outname -Append -NoTypeInformation -Encoding "UTF8"
             }
-        }while($stop_form.state -eq "running")
+        }while($true)
     } $outname | Out-GridView -Title "REX-BTWATTCH1"
 }
 

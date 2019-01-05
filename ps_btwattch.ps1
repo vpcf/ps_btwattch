@@ -116,6 +116,8 @@ function start_measure($bt_device){
         Write-Host "done"
     }else{
         Write-Host "failed"
+        stop_measure $bt_device
+        start_measure $bt_device
     }
 }
 

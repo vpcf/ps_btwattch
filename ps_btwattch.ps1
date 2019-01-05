@@ -181,20 +181,23 @@ $measure_value = {
         [System.Windows.Forms.MessageBox]::Show("計測停止ボタン")
     }
 
+    $outname = Get-Date -Format "'.\\'yyyyMMddHHmmss'.csv'"
     $pastsec = (Get-Date).Second
 
     # 1秒おきに測定値の取得
     &{
+        param($outname)
         do{
             $nowsec = (Get-Date).Second
             if($nowsec -eq $pastsec){
                 Start-Sleep -Milliseconds 10
             }else{
                 $pastsec = $nowsec
-                request_measure $bt_device
+                ($current_value = request_measure $bt_device)
+                $current_value | Export-Csv -Path $outname -Append -NoTypeInformation -Encoding "UTF8"
             }
         }while($stop_form.state -eq "running")
-    } | Out-GridView -Title "REX-BTWATTCH1"
+    } $outname | Out-GridView -Title "REX-BTWATTCH1"
 }
 
 $COMport_name = get_port_name

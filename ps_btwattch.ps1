@@ -131,15 +131,15 @@ function stop_measure($bt_device){
 
 function format_value([int[]]$data){
     if(($data[0] -eq 0xAA) -and ($data[4] -eq 0x00) -and ($data[1] -ne 0x02)){
-        $wattage = if($data[13] -le 5){(($data[13] -shl 16) + ($data[12] -shl 8) + $data[11]) * 5/1000}else{0.0}
+        $wattage = if($data[13] -le 5){(($data[13] -shl 16) + ($data[12] -shl 8) + $data[11]) * 5/1000}else{0}
         $voltage = (($data[10] -shl 16) + ($data[9] -shl 8) + $data[8]) * 1/1000
         $current = (($data[7] -shl 16) + ($data[6] -shl 8) + $data[5]) * 1/128
         try{
             $value = [PSCustomObject]@{
                 'Datetime' = [DateTime]::New((2000 + $data[19]), $data[18], $data[17], $data[16], $data[15], $data[14]);
-                'Wattage(W)' = $wattage;
-                'Voltage(V)' = $voltage;
-                'Current(mA)' = $current
+                'Wattage(W)' = [Double]$wattage;
+                'Voltage(V)' = [Double]$voltage;
+                'Current(mA)' = [Double]$current
             }
         }catch{
             exit

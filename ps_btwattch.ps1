@@ -176,7 +176,6 @@ $measure_value = {
 
     # 1秒おきに測定値の取得
     &{
-        param($outname)
         do{
             $nowsec = (Get-Date).Second
             if($nowsec -eq $pastsec){
@@ -187,7 +186,7 @@ $measure_value = {
                 $current_value | Export-Csv -Path $outname -Append -NoTypeInformation -Encoding "UTF8"
             }
         }while($true)
-    } $outname | Out-GridView -Title "REX-BTWATTCH1"
+    } | Out-GridView -Title "REX-BTWATTCH1"
 }
 
 $COMport_name = get_port_name

@@ -1,10 +1,11 @@
 ﻿<#
 .SYNOPSIS
-    REX-BTWATTCH1のリアルタイム値計測値を取得してテーブル表示します
+    ps_btwattch : REX-BTWATTCH1測定値取得ツール
 
 .DESCRIPTION
-    あらかじめWindows上でREX-BTWATTCH1とペアリングを行ってください
+    REX-BTWATTCH1のリアルタイム値計測値を取得してテーブル表示します
     フレンドリ名"WATT CHECKER"のデバイスから対応するBluetooth仮想COMポートを探して接続します
+    あらかじめWindows上でREX-BTWATTCH1とペアリングを行い、公式ツールで安定して接続できることを確認してください
     接続に成功すると測定値が出力ウインドウに表示されるので、適宜Excelやテキストエディタに貼り付けて利用してください
 
 .EXAMPLE
@@ -13,7 +14,7 @@
 .NOTES
     LICENSE : MIT
     AUTHOR  : @vpcf90
-    VERSION : 20181220
+    VERSION : 20190209
 #>
 
 Set-StrictMode -Version Latest

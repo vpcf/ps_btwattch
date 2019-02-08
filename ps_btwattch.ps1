@@ -111,7 +111,7 @@ function init_wattch1($bt_device){
 
 function start_measure($bt_device){
     Write-Host -NoNewline "starting... "
-    $start_received = communicate $bt_device 0x02,0x00 6
+    $start_received = communicate $bt_device 0x02,0x1e 6
     if($start_received[4] -eq 0x00){
         Write-Host "done"
     }else{

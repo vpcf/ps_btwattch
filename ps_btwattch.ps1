@@ -155,10 +155,7 @@ function request_measure($bt_device){
 }
 
 function make_thread($bt_device, $cmd, $function_list){
-    $pool = [RunspaceFactory]::CreateRunspacePool(1, 1)
-    $pool.Open()
     $ps = [PowerShell]::Create()
-    $ps.RunspacePool = $pool
     $ps.AddScript($cmd).AddArgument($bt_device).AddArgument($function_list) | Out-Null
 
     $result = $ps.BeginInvoke()
@@ -167,7 +164,6 @@ function make_thread($bt_device, $cmd, $function_list){
     }catch{
     }
     $ps.Dispose()
-    $pool.Close()
 }
 
 $measure_value = {

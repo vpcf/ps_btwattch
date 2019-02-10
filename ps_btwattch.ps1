@@ -14,7 +14,7 @@
 .NOTES
     LICENSE : MIT
     AUTHOR  : @vpcf90
-    VERSION : 20190209
+    VERSION : 20190210
 #>
 
 Set-StrictMode -Version Latest
@@ -55,18 +55,24 @@ function get_port_name{
         Where-Object{($_.Name -match "COM") -and ($_.DeviceID -match $bt_dev_address)} |
         ForEach-Object{$_.Name -replace ".+?\((COM\d+).+?",'$1'}
 
+    if($null -eq $com_port_name){
+        Read-Host "No device found"
+        break
+    }
     Write-Output $com_port_name
 }
 
 function open_serialport([string]$port_name){
+    Write-Host -NoNewline "Connecting $port_name... "
     $bt_device = New-Object System.IO.Ports.SerialPort $port_name,115200
     $bt_device.ReadTimeout = 1000  #ms
     $bt_device.WriteTimeout = 1000 #ms
     try{
         $bt_device.Open()
+        Write-Host "done"
         Write-Output $bt_device
     }catch{
-        Write-Host "failed to open device"
+        Read-Host "failed to open device"
         break
     }
 }
@@ -82,7 +88,7 @@ function communicate($bt_device, [byte[]]$payload, [int]$receive_length){
         $bt_device.Write($cmd_array, 0, $cmd_array.length)
     }catch [TimeoutException]{
         $bt_device.close()
-        Write-Host "connection timed out. terminated."
+        Read-Host "connection timed out. terminated."
         break
     }
     $count = $bt_device.Read(($buf = New-Object byte[] 256), 0, $receive_length)
@@ -163,6 +169,7 @@ function make_thread($bt_device, $cmd, $function_list){
     try{
         $ps.EndInvoke($result)
     }catch{
+        Write-Output "measurement halted"
     }
     $ps.Dispose()
 }
@@ -183,7 +190,12 @@ $measure_value = {
                 Start-Sleep -Milliseconds 10
             }else{
                 $pastsec = $nowsec
-                ($current_value = request_measure $bt_device)
+                $current_value = request_measure $bt_device
+                if($current_value){
+                    Write-Output $current_value
+                }else{
+                    continue
+                }
                 $current_value | Export-Csv -Path $outname -Append -NoTypeInformation -Encoding "UTF8"
             }
         }while($true)
@@ -209,3 +221,4 @@ make_thread $wattch1 $measure_value $function_list
 
 stop_measure $wattch1
 $wattch1.close()
+Pause

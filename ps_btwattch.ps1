@@ -174,9 +174,7 @@ function make_thread($bt_device, $cmd, $function_list){
     $ps.Dispose()
 }
 
-$measure_value = {
-    param($bt_device, $function_list)
-
+function measure_value($bt_device, $function_list){
     $function_list | Invoke-Expression
 
     $outname = Get-Date -Format "'.\\'yyyyMMddHHmmss'.csv'"
@@ -217,7 +215,7 @@ $function_list = (
 )
 
 # 別スレッドで測定値の取得
-make_thread $wattch1 $measure_value $function_list
+make_thread $wattch1 $function:measure_value.ToString() $function_list
 
 stop_measure $wattch1
 $wattch1.close()

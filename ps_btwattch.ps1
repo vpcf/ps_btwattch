@@ -171,7 +171,7 @@ function make_thread($bt_device, $cmd, $function_list){
 function measure_value($bt_device, $function_list){
     $function_list | Invoke-Expression
 
-    $outname = Get-Date -Format "'.\\'yyyyMMddHHmmss'.csv'"
+    $outname = Get-Date -Format "'.\\'yyyyMMdd_HHmmss'.csv'"
     $pastsec = (Get-Date).Second
 
     # 1秒おきに測定値の取得

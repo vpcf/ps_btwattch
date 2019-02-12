@@ -168,6 +168,14 @@ function make_thread($bt_device, $cmd, $function_list){
     $ps.Dispose()
 }
 
+function resume_measure($bt_device){
+    Write-Host "resuming connection..."
+    $bt_device.close()
+    $bt_device.open()
+    init_wattch1 $bt_device
+    start_measure $bt_device
+}
+
 function measure_value($bt_device, $function_list){
     $function_list | Invoke-Expression
 

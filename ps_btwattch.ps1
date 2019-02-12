@@ -184,29 +184,38 @@ function measure_value($bt_device, $function_list){
 
     # 1秒おきに測定値の取得
     &{
+        $timeout_count = 0
         do{
             $nowsec = (Get-Date).Second
             if($nowsec -eq $pastsec){
                 Start-Sleep -Milliseconds 10
             }else{
                 $pastsec = $nowsec
-                $current_value = request_measure $bt_device
+                try{
+                    $current_value = request_measure $bt_device
+                }catch{
+                    $timeout_count++
+                    $current_value = $null
+                    Write-Host "connection timed out"
+                    if($timeout_count -gt 5){
+                        resume_measure $bt_device
+                        $timeout_count = 0
+                    }
+                    continue
+                }
+                $timeout_count = 0
+
                 if($current_value){
                     Write-Output $current_value
                 }else{
                     continue
                 }
+
                 $current_value | Export-Csv -Path $outname -Append -NoTypeInformation -Encoding "UTF8"
             }
         }while($true)
     } | Out-GridView -Title "REX-BTWATTCH1"
 }
-
-$COMport_name = get_port_name
-$wattch1 = open_serialport $COMport_name
-
-init_wattch1 $wattch1
-start_measure $wattch1
 
 # 計測用スレッドで使用する関数
 $function_list = (
@@ -215,6 +224,12 @@ $function_list = (
     $function:format_value.Ast.ToString(),
     $function:request_measure.Ast.ToString()
 )
+
+$COMport_name = get_port_name
+$wattch1 = open_serialport $COMport_name
+
+init_wattch1 $wattch1
+start_measure $wattch1
 
 # 別スレッドで測定値の取得
 make_thread $wattch1 $function:measure_value.ToString() $function_list

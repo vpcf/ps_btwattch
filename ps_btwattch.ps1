@@ -143,7 +143,7 @@ function format_value([int[]]$data){
                 'Current(mA)' = [Double]$current
             }
         }catch{
-            exit
+            return
         }
         Write-Output $value
     }

@@ -49,6 +49,11 @@ function get_port_name{
         Out-GridView -Title "接続する機器を選択してください" -OutputMode Single |
         ForEach-Object{$_.HardWareID -replace ".+(\w{12}).*",'$1'}
 
+    if($null -eq $bt_dev_address){
+        Read-Host "No device selected"
+        break
+    }
+
     # BDアドレスに対応するCOMポート名を取得
     $com_port_name =
         Get-WmiObject -Class Win32_PnPEntity |
@@ -59,6 +64,7 @@ function get_port_name{
         Read-Host "No device found"
         break
     }
+
     Write-Output $com_port_name
 }
 

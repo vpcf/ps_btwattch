@@ -78,7 +78,8 @@ function open_serialport([string]$port_name){
         Write-Host "done"
         Write-Output $bt_device
     }catch{
-        Read-Host "failed to open device"
+        Write-Host "failed"
+        Read-Host "Failed to open device"
         break
     }
 }
@@ -99,7 +100,7 @@ function communicate($bt_device, [byte[]]$payload, [int]$receive_length){
 }
 
 function init_wattch1($bt_device){
-    Write-Host -NoNewline "initializing... "
+    Write-Host -NoNewline "Initializing... "
     $timer_payload =
         0x01,
         ($now = Get-Date).Second,
@@ -119,7 +120,7 @@ function init_wattch1($bt_device){
 }
 
 function start_measure($bt_device){
-    Write-Host -NoNewline "starting... "
+    Write-Host -NoNewline "Starting... "
     $start_received = communicate $bt_device 0x02,0x1e 6
     if($start_received[4] -eq 0x00){
         Write-Host "done"
@@ -129,7 +130,7 @@ function start_measure($bt_device){
 }
 
 function stop_measure($bt_device){
-    Write-Host -NoNewline "stopping... "
+    Write-Host -NoNewline "Stopping... "
     $stop_received = communicate $bt_device 0x03 6
     if($stop_received[4] -eq 0x00){
         Write-Host "done"
@@ -171,13 +172,13 @@ function make_thread($bt_device, $cmd, $function_list){
     try{
         $ps.EndInvoke($result)
     }catch{
-        Write-Output "measurement halted"
+        Write-Output "Measurement halted"
     }
     $ps.Dispose()
 }
 
 function resume_measure($bt_device){
-    Write-Host "resuming connection..."
+    Write-Host "Resuming connection..."
     $bt_device.close()
     $bt_device.open()
     init_wattch1 $bt_device
@@ -204,7 +205,7 @@ function measure_value($bt_device, $function_list){
                 }catch{
                     $timeout_count++
                     $current_value = $null
-                    Write-Host "connection timed out"
+                    Write-Host "Connection timed out"
                     if($timeout_count -gt 5){
                         resume_measure $bt_device
                         $timeout_count = 0

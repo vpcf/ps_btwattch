@@ -229,11 +229,9 @@ $COMport_name = get_port_name
 $wattch1 = open_serialport $COMport_name
 
 init_wattch1 $wattch1
-start_measure $wattch1
 
 # 別スレッドで測定値の取得
 make_thread $wattch1 $function:measure_value.ToString() $function_list
 
-stop_measure $wattch1
 $wattch1.close()
 Pause

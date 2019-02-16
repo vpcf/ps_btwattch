@@ -14,7 +14,7 @@
 .NOTES
     LICENSE : MIT
     AUTHOR  : @vpcf90
-    VERSION : 20190213
+    VERSION : 20190217
 #>
 
 Set-StrictMode -Version Latest
@@ -84,10 +84,12 @@ function communicate($bt_device, [byte[]]$payload, [int]$receive_length){
     [byte]$cmd_crc8 = get_crc8 $payload
     [byte[]]$cmd_array = $cmd_header, $cmd_lobyte, $cmd_hibyte, $payload, $cmd_crc8 | ForEach-Object{$_}
 
+    [void]$bt_device.ReadExisting()
     $bt_device.Write($cmd_array, 0, $cmd_array.length)
-    $count = $bt_device.Read(($buf = New-Object byte[] 256), 0, $receive_length)
+    $read_length = $bt_device.Read(($buf = New-Object byte[] 256), 0, $receive_length)
 
-    Write-Output ([int[]]$buf[0..($count - 1)])
+    $read_packet = [int[]]$buf[0..($read_length - 1)]
+    Write-Output $read_packet
 }
 
 function init_wattch1($bt_device){

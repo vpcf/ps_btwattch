@@ -208,7 +208,7 @@ function measure_value($bt_device, $function_list){
                     }
                     continue
                 }catch{
-                    Write-Host "Invalid Value Received" $current_value
+                    Write-Host "Invalid Value Received"
                     continue
                 }
                 $timeout_count = 0

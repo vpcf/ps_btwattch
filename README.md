@@ -14,7 +14,7 @@ REX-BTWATTCH1の毎秒測定値(消費電力(W), 電圧(V), 電流(mA))をグリ
 PowerShellから単に実行してください。(PowerShellスクリプト実行ポリシーの有効化が必要です)
 
 ```powershell
-.\ps_btwattch1
+.\ps_btwattch
 ```
 
 右クリックメニューの「PowerShell で実行」からでも実行できます。

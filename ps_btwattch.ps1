@@ -144,15 +144,11 @@ function format_value([int[]]$data){
         $wattage = if($data[13] -le 5){(($data[13] -shl 16) + ($data[12] -shl 8) + $data[11]) * 5/1000}else{0}
         $voltage = (($data[10] -shl 16) + ($data[9] -shl 8) + $data[8]) * 1/1000
         $current = (($data[7] -shl 16) + ($data[6] -shl 8) + $data[5]) * 1/128
-        try{
-            $value = [PSCustomObject]@{
-                'Datetime' = [DateTime]::New((2000 + $data[19]), $data[18], $data[17], $data[16], $data[15], $data[14]);
-                'Wattage(W)' = [Double]$wattage;
-                'Voltage(V)' = [Double]$voltage;
-                'Current(mA)' = [Double]$current
-            }
-        }catch{
-            return
+        $value = [PSCustomObject]@{
+            'Datetime' = [DateTime]::New((2000 + $data[19]), $data[18], $data[17], $data[16], $data[15], $data[14]);
+            'Wattage(W)' = [Double]$wattage;
+            'Voltage(V)' = [Double]$voltage;
+            'Current(mA)' = [Double]$current
         }
         Write-Output $value
     }
@@ -194,7 +190,7 @@ function measure_value($bt_device, $function_list){
     # 1秒おきに測定値の取得
     &{
         $timeout_count = 0
-        do{
+        while($true){
             $nowsec = (Get-Date).Second
             if($nowsec -eq $pastsec){
                 Start-Sleep -Milliseconds 10
@@ -202,7 +198,7 @@ function measure_value($bt_device, $function_list){
                 $pastsec = $nowsec
                 try{
                     $current_value = request_measure $bt_device
-                }catch{
+                }catch [TimeoutException]{
                     $timeout_count++
                     $current_value = $null
                     Write-Host "Connection timed out"
@@ -211,18 +207,18 @@ function measure_value($bt_device, $function_list){
                         $timeout_count = 0
                     }
                     continue
+                }catch{
+                    Write-Host "Invalid Value Received" $current_value
+                    continue
                 }
                 $timeout_count = 0
 
                 if($current_value){
                     Write-Output $current_value
-                }else{
-                    continue
-                }
-
-                $current_value | Export-Csv -Path $outname -Append -NoTypeInformation -Encoding "UTF8"
+                    $current_value | Export-Csv -Path $outname -Append -NoTypeInformation -Encoding "UTF8"
+                }                
             }
-        }while($true)
+        }
     } | Out-GridView -Title "REX-BTWATTCH1"
 }
 

@@ -68,20 +68,13 @@ function get_port_name{
     Write-Output $com_port_name
 }
 
-function open_serialport([string]$port_name){
-    Write-Host -NoNewline "Connecting $port_name... "
+function set_serialport([string]$port_name){
+    Write-Host -NoNewline "Configuring $port_name... "
     $port = New-Object System.IO.Ports.SerialPort $port_name,115200
     $port.ReadTimeout = 1000  #ms
     $port.WriteTimeout = 1000 #ms
-    try{
-        $port.Open()
-        Write-Host "done"
-        Write-Output $port
-    }catch{
-        Write-Host "failed"
-        Read-Host "Failed to open device"
-        break
-    }
+    Write-Host "done"
+    Write-Output $port
 }
 
 function communicate($port, [byte[]]$payload, [int]$receive_length){
@@ -222,7 +215,6 @@ function measure_value($port){
     } | Out-GridView -Title "REX-BTWATTCH1"
 }
 
-# 計測用スレッドで使用する関数
 $call_measure = {
     param($port, $functions)
 
@@ -233,11 +225,18 @@ $call_measure = {
 }
 
 $COMport_name = get_port_name
-$wattch1 = open_serialport $COMport_name
+$wattch1 = set_serialport $COMport_name
+
+try{
+    $wattch1.open()
+    Write-Host "Succeeded to open device"
+}catch{
+    Read-Host "Failed to open device"
+    break
+}
 
 init_wattch1 $wattch1
 
 make_thread $call_measure $wattch1
 
 $wattch1.close()
-Pause

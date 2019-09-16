@@ -160,9 +160,11 @@ function request_measure($bt_device){
     Write-Output $value
 }
 
-function make_thread($bt_device, $cmd, $function_list){
+function make_thread($cmd, $arg){
+    $functions = Get-ChildItem function: | ForEach-Object{$_.ScriptBlock.Ast.ToString()}
+
     $ps = [PowerShell]::Create()
-    $ps.AddScript($cmd).AddArgument($bt_device).AddArgument($function_list) | Out-Null
+    $ps.AddScript($cmd).AddArgument($arg).AddArgument($functions) | Out-Null
 
     $result = $ps.BeginInvoke()
     try{
@@ -181,9 +183,7 @@ function resume_measure($bt_device){
     start_measure $bt_device
 }
 
-function measure_value($bt_device, $function_list){
-    $function_list | Invoke-Expression
-
+function measure_value($bt_device){
     $outname = Get-Date -Format "'.\\'yyyyMMdd_HHmmss'.csv'"
     $pastsec = (Get-Date).Second
 
@@ -223,20 +223,21 @@ function measure_value($bt_device, $function_list){
 }
 
 # 計測用スレッドで使用する関数
-$function_list = (
-    $function:get_crc8.Ast.ToString(),
-    $function:communicate.Ast.ToString(),
-    $function:format_value.Ast.ToString(),
-    $function:request_measure.Ast.ToString()
-)
+$call_measure = {
+    param($bt_device, $functions)
+
+    $func = Get-ChildItem function: | ForEach-Object{$_.ScriptBlock.Ast.ToString()}
+    compare-object $func $functions | ForEach-Object inputobject | Invoke-Expression
+
+    measure_value $bt_device
+}
 
 $COMport_name = get_port_name
 $wattch1 = open_serialport $COMport_name
 
 init_wattch1 $wattch1
 
-# 別スレッドで測定値の取得
-make_thread $wattch1 $function:measure_value.ToString() $function_list
+make_thread $call_measure $wattch1
 
 $wattch1.close()
 Pause

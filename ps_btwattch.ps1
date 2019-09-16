@@ -70,13 +70,13 @@ function get_port_name{
 
 function open_serialport([string]$port_name){
     Write-Host -NoNewline "Connecting $port_name... "
-    $bt_device = New-Object System.IO.Ports.SerialPort $port_name,115200
-    $bt_device.ReadTimeout = 1000  #ms
-    $bt_device.WriteTimeout = 1000 #ms
+    $port = New-Object System.IO.Ports.SerialPort $port_name,115200
+    $port.ReadTimeout = 1000  #ms
+    $port.WriteTimeout = 1000 #ms
     try{
-        $bt_device.Open()
+        $port.Open()
         Write-Host "done"
-        Write-Output $bt_device
+        Write-Output $port
     }catch{
         Write-Host "failed"
         Read-Host "Failed to open device"
@@ -84,22 +84,22 @@ function open_serialport([string]$port_name){
     }
 }
 
-function communicate($bt_device, [byte[]]$payload, [int]$receive_length){
+function communicate($port, [byte[]]$payload, [int]$receive_length){
     [byte]$cmd_header = 0xAA
     [byte]$cmd_lobyte = $payload.length
     [byte]$cmd_hibyte = ($payload.length -shr 8) -band 0xFF
     [byte]$cmd_crc8 = get_crc8 $payload
     [byte[]]$cmd_array = $cmd_header, $cmd_lobyte, $cmd_hibyte, $payload, $cmd_crc8 | ForEach-Object{$_}
 
-    [void]$bt_device.ReadExisting()
-    $bt_device.Write($cmd_array, 0, $cmd_array.length)
-    $read_length = $bt_device.Read(($buf = New-Object byte[] 256), 0, $receive_length)
+    [void]$port.ReadExisting()
+    $port.Write($cmd_array, 0, $cmd_array.length)
+    $read_length = $port.Read(($buf = New-Object byte[] 256), 0, $receive_length)
 
     $read_packet = [int[]]$buf[0..($read_length - 1)]
     Write-Output $read_packet
 }
 
-function init_wattch1($bt_device){
+function init_wattch1($port){
     Write-Host -NoNewline "Initializing... "
     $timer_payload =
         0x01,
@@ -111,7 +111,7 @@ function init_wattch1($bt_device){
         ($now.Year%100),
         $now.DayOfWeek
 
-    $init_received = communicate $bt_device $timer_payload 6
+    $init_received = communicate $port $timer_payload 6
     if($init_received[4] -eq 0x00){
         Write-Host "done"
     }else{
@@ -119,9 +119,9 @@ function init_wattch1($bt_device){
     }
 }
 
-function start_measure($bt_device){
+function start_measure($port){
     Write-Host -NoNewline "Starting... "
-    $start_received = communicate $bt_device 0x02,0x1e 6
+    $start_received = communicate $port 0x02,0x1e 6
     if($start_received[4] -eq 0x00){
         Write-Host "done"
     }else{
@@ -129,9 +129,9 @@ function start_measure($bt_device){
     }
 }
 
-function stop_measure($bt_device){
+function stop_measure($port){
     Write-Host -NoNewline "Stopping... "
-    $stop_received = communicate $bt_device 0x03 6
+    $stop_received = communicate $port 0x03 6
     if($stop_received[4] -eq 0x00){
         Write-Host "done"
     }else{
@@ -154,8 +154,8 @@ function format_value([int[]]$data){
     }
 }
 
-function request_measure($bt_device){
-    $measured_data = communicate $bt_device 0x08 21
+function request_measure($port){
+    $measured_data = communicate $port 0x08 21
     $value = format_value $measured_data
     Write-Output $value
 }
@@ -175,15 +175,15 @@ function make_thread($cmd, $arg){
     $ps.Dispose()
 }
 
-function resume_measure($bt_device){
+function resume_measure($port){
     Write-Host "Resuming connection..."
-    $bt_device.close()
-    $bt_device.open()
-    init_wattch1 $bt_device
-    start_measure $bt_device
+    $port.close()
+    $port.open()
+    init_wattch1 $port
+    start_measure $port
 }
 
-function measure_value($bt_device){
+function measure_value($port){
     $outname = Get-Date -Format "'.\\'yyyyMMdd_HHmmss'.csv'"
     $pastsec = (Get-Date).Second
 
@@ -197,13 +197,13 @@ function measure_value($bt_device){
             }else{
                 $pastsec = $nowsec
                 try{
-                    $current_value = request_measure $bt_device
+                    $current_value = request_measure $port
                 }catch [TimeoutException]{
                     $timeout_count++
                     $current_value = $null
                     Write-Host "Connection timed out"
                     if($timeout_count -gt 5){
-                        resume_measure $bt_device
+                        resume_measure $port
                         $timeout_count = 0
                     }
                     continue
@@ -224,12 +224,12 @@ function measure_value($bt_device){
 
 # 計測用スレッドで使用する関数
 $call_measure = {
-    param($bt_device, $functions)
+    param($port, $functions)
 
     $func = Get-ChildItem function: | ForEach-Object{$_.ScriptBlock.Ast.ToString()}
     compare-object $func $functions | ForEach-Object inputobject | Invoke-Expression
 
-    measure_value $bt_device
+    measure_value $port
 }
 
 $COMport_name = get_port_name

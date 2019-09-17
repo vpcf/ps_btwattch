@@ -178,39 +178,27 @@ function resume_measure($port){
 
 function measure_value($port){
     $outname = Get-Date -Format "'.\\'yyyyMMdd_HHmmss'.csv'"
-    $pastsec = (Get-Date).Second
 
     # 1秒おきに測定値の取得
-    &{
-        $timeout_count = 0
+    $port | ForEach-Object{
         while($true){
-            $nowsec = (Get-Date).Second
-            if($nowsec -eq $pastsec){
-                Start-Sleep -Milliseconds 10
-            }else{
-                $pastsec = $nowsec
-                try{
-                    $current_value = request_measure $port
-                }catch [TimeoutException]{
-                    $timeout_count++
-                    $current_value = $null
-                    Write-Host "Connection timed out"
-                    if($timeout_count -gt 5){
-                        resume_measure $port
-                        $timeout_count = 0
-                    }
-                    continue
-                }catch{
-                    Write-Host "Invalid Value Received"
-                    continue
-                }
-                $timeout_count = 0
+            Start-Sleep -Milliseconds (1e3 - (Get-Date).Millisecond)
 
-                if($current_value){
-                    Write-Output $current_value
-                    $current_value | Export-Csv -Path $outname -Append -NoTypeInformation -Encoding "UTF8"
-                }                
+            try{
+                $current_value = request_measure $_
+            }catch [TimeoutException]{
+                Write-Host "Connection timed out"
+                resume_measure $_
+                continue
+            }catch{
+                Write-Host "Invalid Value Received"
+                continue
             }
+            
+            if($current_value){
+                Write-Output $current_value
+                $current_value | Export-Csv -Path $outname -NoTypeInformation -Append -Encoding "UTF8"
+            }                
         }
     } | Out-GridView -Title "REX-BTWATTCH1"
 }

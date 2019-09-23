@@ -217,7 +217,7 @@ $wattch1 = set_serialport $COMport_name
 
 try{
     $wattch1.open()
-    Write-Host "Succeeded to open device"
+    Write-Host "Successfully opened device"
 }catch{
     Read-Host "Failed to open device"
     break

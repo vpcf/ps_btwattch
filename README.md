@@ -6,12 +6,14 @@ This script runs on Windows PowerShell v3 or above.
 REX-BTWATTCH1の毎秒測定値(消費電力(W), 電圧(V), 電流(mA))をグリッドビューウインドウに表示し、データのソートやコピーなど簡単な操作が行えます。測定値は随時CSVファイルに書き出されます。  
 このスクリプトの実行にはWindows PowerShell 3.0以上が必要です。
 
+※BLE GATTで通信するRS-BTWATTCH2には対応しません。RS-BTWATTCH2は接続に認証・暗号化が必要ですが、Windowsの設定からペアリングではセキュリティ無しの接続にしかならず、PowerShell単体ではDevicePairingProtectionLevelを指定したペアリングもできないからです。
+
 コマンド仕様は以下のページを参考にしました。  
 [Armadillo-IoT G3で「Bluetooth ワットチェッカー」から計測データを表示](https://armadillo.atmark-techno.com/howto/armadillo_rex-btwattch1)
 
 ## 使い方
 
-PowerShellから単に実行してください。(PowerShellスクリプト実行ポリシーの有効化が必要です)
+あらかじめピンコード入力によるペアリングを行ったあと、PowerShellから単に実行してください。(PowerShellスクリプト実行ポリシーの有効化が必要です)
 
 ```powershell
 .\ps_btwattch
